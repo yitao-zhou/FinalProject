@@ -56,9 +56,11 @@ class Client:
         return my_msg, peer_msg
 
     def output(self):
-        if len(self.system_msg) > 0:
-            print(self.system_msg)
-            self.system_msg = ''
+        # if len(self.system_msg) > 0:
+        # print(self.system_msg)
+        self.msg = self.system_msg
+        self.system_msg = ''
+        return self.msg
 
     def login(self):
         my_msg, peer_msg = self.get_msgs()
@@ -84,23 +86,26 @@ class Client:
             text = sys.stdin.readline()[:-1]
             self.console_input.append(text)  # no need for lock, append is thread safe
 
+    def input_instruction(self, text):
+        self.console_input.append(text)
+
     def print_instructions(self):
         self.system_msg += menu
 
-    def run_chat(self):
+    def run_chat(self, username):
         self.init_chat()
-        self.system_msg += 'Welcome to ICS chat\n'
-        self.system_msg += 'Please enter your name: '
-        self.output()
-        while self.login() != True:
-            self.output()
-        self.system_msg += 'Welcome, ' + self.get_name() + '!'
-        self.output()
-        while self.sm.get_state() != S_OFFLINE:
-            self.proc()
-            self.output()
-            time.sleep(CHAT_WAIT)
-        self.quit()
+        self.system_msg += 'Welcome to ICS chat, ' + username + '\n'
+        # self.system_msg += 'Please enter your name: '
+        # self.output()
+        # while self.login() != True:
+        #     self.output()
+        # self.system_msg += 'Welcome, ' + self.get_name() + '!'
+        # self.output()
+        # while self.sm.get_state() != S_OFFLINE:
+        #     self.proc()
+        #     self.output()
+        #     time.sleep(CHAT_WAIT)
+        # self.quit()
 
 #==============================================================================
 # main processing loop
