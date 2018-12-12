@@ -1,18 +1,18 @@
 import socket
 import time
+import encryption
 
-# use local loop back address by default
-#CHAT_IP = '127.0.0.1'
-# CHAT_IP = socket.gethostbyname(socket.gethostname())
-CHAT_IP = ''  # socket.gethostbyname(socket.gethostname())
 
-CHAT_PORT = 1112
+CHAT_IP = socket.gethostbyname(socket.gethostname())
+CHAT_PORT = 1113
 SERVER = (CHAT_IP, CHAT_PORT)
 
-menu = "\n++++ Choose one of the following commands\n \
+menu = "++++ Choose one of the following commands\n \
         c _peer_: to connect to the _peer_ and chat\n \
         ? _term_: to search your chat logs where _term_ appears\n \
-        Explore other tools in the menu!\n \n"
+        Explore more tools in the menu! \n\n"
+
+'''q: to leave the chat system\n'''
 
 S_OFFLINE = 0
 S_CONNECTED = 1
@@ -39,6 +39,9 @@ def print_state(state):
 
 
 def mysend(s, msg):
+    msg = encryption.serial_encrypt(msg, 191)
+    # print(msg)
+
     # append size to message and send it
     msg = ('0' * SIZE_SPEC + str(len(msg)))[-SIZE_SPEC:] + str(msg)
     msg = msg.encode()
@@ -70,6 +73,8 @@ def myrecv(s):
             break
         msg += text
     #print ('received '+message)
+    # print(msg)
+    msg = encryption.serial_decrypt(msg, 191)
     return (msg)
 
 

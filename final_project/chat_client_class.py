@@ -4,7 +4,7 @@ import select
 import sys
 import json
 from chat_utils import *
-import client_state_machine as csm
+import client_state_machine_student as csm
 
 import threading
 
@@ -14,7 +14,7 @@ class Client:
         self.peer = ''
         self.console_input = []
         self.state = S_OFFLINE
-        self.system_msg = ''
+        self.system_msg = ''    # All the messages that are printed in the user interface
         self.local_msg = ''
         self.peer_msg = ''
         self.args = args
@@ -29,11 +29,12 @@ class Client:
     def init_chat(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         svr = SERVER if self.args.d == None else (self.args.d, CHAT_PORT)
+        # svr = ('10.209.5.117', 1118)
         self.socket.connect(svr)
+
+        print(svr)
+
         self.sm = csm.ClientSM(self.socket)
-        reading_thread = threading.Thread(target=self.read_input)
-        reading_thread.daemon = True
-        reading_thread.start()
 
     def shutdown_chat(self):
         return
@@ -56,8 +57,6 @@ class Client:
         return my_msg, peer_msg
 
     def output(self):
-        # if len(self.system_msg) > 0:
-        # print(self.system_msg)
         self.msg = self.system_msg
         self.system_msg = ''
         return self.msg
@@ -69,22 +68,20 @@ class Client:
             msg = json.dumps({"action": "login", "name": self.name})
             self.send(msg)
             response = json.loads(self.recv())
-            if response["status"] == 'ok':
+            if response["status"] == 'okay':
                 self.state = S_LOGGEDIN
                 self.sm.set_state(S_LOGGEDIN)
                 self.sm.set_myname(self.name)
+
+                self.system_msg += 'Welcome, ' + self.name + '!\n'
+
                 self.print_instructions()
                 return (True)
             elif response["status"] == 'duplicate':
                 self.system_msg += 'Duplicate username, try again'
                 return False
-        else:               # fix: dup is only one of the reasons
+        else:
             return(False)
-
-    def read_input(self):
-        while True:
-            text = sys.stdin.readline()[:-1]
-            self.console_input.append(text)  # no need for lock, append is thread safe
 
     def input_instruction(self, text):
         self.console_input.append(text)
@@ -94,18 +91,8 @@ class Client:
 
     def run_chat(self, username):
         self.init_chat()
-        self.system_msg += 'Welcome to ICS chat, ' + username + '\n'
-        # self.system_msg += 'Please enter your name: '
-        # self.output()
-        # while self.login() != True:
-        #     self.output()
-        # self.system_msg += 'Welcome, ' + self.get_name() + '!'
-        # self.output()
-        # while self.sm.get_state() != S_OFFLINE:
-        #     self.proc()
-        #     self.output()
-        #     time.sleep(CHAT_WAIT)
-        # self.quit()
+        self.system_msg += 'Welcome to SOS Chat ' + username + '\n'
+
 
 #==============================================================================
 # main processing loop

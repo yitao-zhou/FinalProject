@@ -3,6 +3,7 @@ import tkinter.messagebox
 import pprint
 from chat_utils import *
 from chat_client_class import *
+import os
 
 
 class GUI_Logged_in:
@@ -46,21 +47,27 @@ class GUI_Logged_in:
 
         self.subMenu = Menu(self.menu)
         self.menu.add_cascade(label='Tool', menu=self.subMenu)
-        self.subMenu.add_command(label='Time', command=self.time)  # To access the time function
 
+        # To access the time function
+        self.subMenu.add_command(label='Time', command=self.time)
         self.subMenu.add_command(label='poem', command=self.message)
 
-        self.subMenu.add_command(label='Online people', command=self.online)  # To access how many people are online
+        # To access how many people are online
+        self.subMenu.add_command(label='Online people', command=self.online)
         self.subMenu.add_separator()
-        self.subMenu.add_command(label='Quit', command=self.quit)  # Quit the app
+
+        # Quit the app
+        self.subMenu.add_command(label='Quit', command=self.quit)
 
         self.editMenu = Menu(self.menu)
         self.menu.add_cascade(label='Game', menu=self.editMenu)
-        self.editMenu.add_command(label='2048', command=self.game)  # To access the game
+
+        # To access the game
+        self.editMenu.add_command(label='2048', command=self.game)
 
         #----- Top Frame Hello User -----#
-        self.hello_label = Label(self.top_frame, text='Hello {}'.format(username), font='Arial -30 bold')
-        self.hello_label.pack()
+        self.hello_label = Label(self.top_frame, text='Welcome to SOS Chat', font='Arial -30 bold')
+        self.hello_label.pack(side='right')
         #----- Top Frame Hello User -----#
 
         #----- Mid Frame Info Box -----#
@@ -84,7 +91,7 @@ class GUI_Logged_in:
         #----- Bot Frame Text Input -----#
 
         # self.top_frame.pack()
-        self.top_frame.place(x=300, y=20)
+        self.top_frame.place(x=230, y=20)
         self.mid_frame.place(x=100, y=80)
         self.bot_frame.place(x=150, y=520)
 
@@ -146,7 +153,7 @@ class GUI_Logged_in:
         if len(all_lines) > 18:
             if k > 0:
                 print('all_lines', len(all_lines))
-                if self.reading_position < len(all_lines) - 26:
+                if self.reading_position < len(all_lines) - 22:
                     self.reading_position += k
             if k < 0:
                 if self.reading_position > 1:
@@ -190,12 +197,15 @@ class GUI_Logged_in:
         self.client.input_instruction('time')
         self.client.proc()
 
-    def game(self):
-        self.game_window = Toplevel(self.main_window)
+    def getname(self):
+        f = open('name_of_user.txt', 'w')
+        f.write(self.username)
+        f.close()
 
-        import puzzle
-        name = self.username
-        self.game_window = puzzle.GameGrid(name)
+    def game(self):
+        self.getname()
+
+        os.system('python3 puzzle.py')
 
     #----- Poem Window -----#
     def message(self):

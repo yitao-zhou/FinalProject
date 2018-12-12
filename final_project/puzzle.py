@@ -4,6 +4,7 @@ from random import *
 from timer import *
 import math
 import os
+import GUI_chat_client
 
 SIZE = 500
 GRID_LEN = 4
@@ -33,8 +34,13 @@ KEY_RIGHT = "'d'"
 class GameGrid(Frame):
     def __init__(self, name='no name'):
         Frame.__init__(self)
-        self.name = name
-        print(self.name)
+        f3 = open('name_of_user.txt', 'r')
+        name1 = f3.readline().strip()
+        f3.close()
+        if name1 == '':
+            self.name = 'no name'
+        else:
+            self.name = name1
         self.grid()
         self.master.title('2048')
         self.master.bind("<Key>", self.key_down)

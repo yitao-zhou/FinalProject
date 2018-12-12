@@ -2,6 +2,7 @@
 Created on Tue Jul 22 00:47:05 2014
 
 @author: alina, zzhang
+@revised by: Sunny Song, Oscar Wan
 """
 
 import time
@@ -33,6 +34,22 @@ class Server:
         # sonnet
         self.sonnet = indexer.PIndex("AllSonnets.txt")
 
+        self.mute_list = list()
+        self.users_info = {}
+        self.read_pwd()
+
+    # password
+    def read_pwd(self):
+        with open('npwd.pickle', 'rb') as handle:
+            pwd_dict = pkl.load(handle)
+            self.users_info = pwd_dict
+            return pwd_dict
+
+    def store_pwd(self):
+        pwd_dict = self.users_info
+        with open('npwd.pickle', 'wb') as handle:
+            pkl.dump(pwd_dict, handle, protocol=pkl.HIGHEST_PROTOCOL)
+
     def new_client(self, sock):
         # add to all sockets and to new clients
         print('new client...')
@@ -49,12 +66,9 @@ class Server:
                 if msg["action"] == "login":
                     name = msg["name"]
                     if self.group.is_member(name) != True:
-                        # move socket from new clients list to logged clients
                         self.new_clients.remove(sock)
-                        # add into the name to sock mapping
                         self.logged_name2sock[name] = sock
                         self.logged_sock2name[sock] = name
-                        # load chat history of that user
                         if name not in self.indices.keys():
                             try:
                                 self.indices[name] = pkl.load(
@@ -64,14 +78,14 @@ class Server:
                         print(name + ' logged in')
                         self.group.join(name)
                         mysend(sock, json.dumps(
-                            {"action": "login", "status": "ok"}))
-                    else:  # a client under this name has already logged in
+                            {"action": "login", "status": "okay"}))
+                    else:
                         mysend(sock, json.dumps(
                             {"action": "login", "status": "duplicate"}))
                         print(name + ' duplicate login attempt')
                 else:
                     print('wrong code received')
-            else:  # client died unexpectedly
+            else:
                 self.logout(sock)
         except:
             self.all_sockets.remove(sock)
@@ -98,6 +112,47 @@ class Server:
             # handle connect request this is implemented for you
             # ==============================================================================
             msg = json.loads(msg)
+            if msg['action'] == 'login':
+                from_name = self.logged_sock2name[from_sock]
+                to_sock = from_sock
+                if from_name == 'logger':
+                    nn, np = msg['name-pass'].split(',')
+                    if nn in self.users_info.keys():
+                        if np == self.users_info[nn]:
+                            if self.group.is_member(nn) != True:
+                                mysend(to_sock, json.dumps({'action': 'login', 'status': 'okay'}))
+                                eliminate_sock = self.logged_name2sock['logger']
+                                self.logout(eliminate_sock)
+                                print('logger be eliminated')
+                                print('self.group after eliminating logger: ', self.group)
+
+                            else:
+                                mysend(to_sock, json.dumps({'action': 'login', 'status': 'duplicate'}))
+                                print(nn + ' duplicate login attempt')
+                        else:
+                            mysend(to_sock, json.dumps({'action': 'login', 'status': 'incorrect'}))
+                            print(nn + ' is a valid user, but gives wrong password')
+                    else:
+                        mysend(to_sock, json.dumps({'action': 'login', 'status': 'notFound'}))
+                        print(nn + ' is not a valid user name, non exist user!')
+                else:
+                    print('Login request not from logger, alert!')
+
+            elif msg['action'] == 'register':
+                from_name = self.logged_sock2name[from_sock]
+                to_sock = from_sock
+                if from_name == 'logger':
+                    nn, np = msg['name-pass'].split(',')
+                    if nn not in self.users_info.keys():
+                        self.users_info[nn] = np
+                        self.store_pwd()
+                        mysend(to_sock, json.dumps({'action': 'register', 'status': 'okay'}))
+                    else:
+                        mysend(to_sock, json.dumps({'action': 'register', 'status': 'duplicate'}))
+                        print(nn + ' duplicate register attempt')
+                else:
+                    print('Register request not from logger, alert!')
+
             if msg["action"] == "connect":
                 to_name = msg["target"]
                 from_name = self.logged_sock2name[from_sock]

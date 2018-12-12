@@ -21,6 +21,7 @@ S_TALKING = 1
 #    - disconnect: leave the chat group but stay in the system
 #==============================================================================
 
+
 class Group:
 
     def __init__(self):
@@ -52,7 +53,7 @@ class Group:
 
     def connect(self, me, peer):
         peer_in_group = False
-        #if peer is in a group, join it
+        # if peer is in a group, join it
         peer_in_group, group_key = self.find_group(peer)
         if peer_in_group == True:
             print(peer, "is talking already, connect!")
@@ -113,11 +114,5 @@ class Group:
                         my_list.append(member)
         return my_list
 
-if __name__ == "__main__":
-    g = Group()
-    g.join('a')
-    g.join('b')
-    print(g.list_all('a'))
-    g.list_all2('a')
-    g.connect('a', 'b')
-    print(g.list_all('b'))
+
+g = Group()
